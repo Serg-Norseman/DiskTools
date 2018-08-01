@@ -29,6 +29,8 @@ namespace DiskTracker
     {
         private TreeMapViewer fDataMap;
 
+        private bool fShowFreeSpace = true;
+
         public MainForm()
         {
             InitializeComponent();
@@ -50,7 +52,6 @@ namespace DiskTracker
                 if (d.IsReady) {
                     tscmbDisk.Items.Add(new DiskItem(string.Format("{0} [{1}], {2}, {3}", d.Name, d.VolumeLabel, d.DriveType, d.DriveFormat), d));
                 }
-                /* d.TotalFreeSpace, d.TotalSize */
             }
         }
 
@@ -74,7 +75,7 @@ namespace DiskTracker
             DirectoryInfo rootDir = di.RootDirectory;
             tslblPath.Text = rootDir.FullName;
 
-            WalkDirectoryTree(rootDir);
+            WalkDirectoryTree(rootDir, di.TotalSize - di.TotalFreeSpace, di.TotalFreeSpace);
 
             fDataMap.UpdateView();
         }
@@ -91,7 +92,7 @@ namespace DiskTracker
             }
         }
 
-        private void WalkDirectoryTree(DirectoryInfo root)
+        private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
         {
             Stack<DirStackItem> dirStack = new Stack<DirStackItem>(20);
 
@@ -103,6 +104,10 @@ namespace DiskTracker
                 DirectoryInfo currentDir = stackItem.DirInfo;
                 if ((currentDir.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint) {
                     continue;
+                }
+
+                if (currentDir == root && fShowFreeSpace) {
+                    CreateItem(stackItem.Parent, "FreeSpace", freeSpace, 0.0f);
                 }
 
                 var dirItem = CreateItem(stackItem.Parent, currentDir.FullName, 0.0f, 0.0f);
