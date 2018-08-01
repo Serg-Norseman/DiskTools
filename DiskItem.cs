@@ -17,6 +17,9 @@
  */
 
 using System.Drawing;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using BSLib.Controls;
 
 namespace DiskTracker
 {
@@ -50,6 +53,43 @@ namespace DiskTracker
         public override string ToString()
         {
             return Caption;
+        }
+    }
+
+    [ToolStripItemDesignerAvailability(ToolStripItemDesignerAvailability.ToolStrip | ToolStripItemDesignerAvailability.StatusStrip)]
+    public class ToolStripOptionsPicker : CustomToolStripControlHost
+    {
+        public ToolStripOptionsPicker()
+            : base(CreateControlInstance())
+        {
+        }
+
+        public OptionsPicker OptionsPicker
+        {
+            get {
+                return Control as OptionsPicker;
+            }
+        }
+
+        private static Control CreateControlInstance()
+        {
+            OptionsPicker mtb = new OptionsPicker();
+            mtb.BorderStyle = BorderStyle.FixedSingle;
+            mtb.MinimumSize = new Size(200, 16);
+            return mtb;
+        }
+    }
+
+    public class CustomToolStripControlHost : ToolStripControlHost
+    {
+        public CustomToolStripControlHost()
+            : base(new Control())
+        {
+        }
+
+        public CustomToolStripControlHost(Control c)
+            : base(c)
+        {
         }
     }
 }

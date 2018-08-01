@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BSLib.Controls">
+      <HintPath>libs\BSLib.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="BSLib.DataViz.Model">
       <HintPath>libs\BSLib.DataViz.Model.dll</HintPath>
     </Reference>

@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using BSLib.Controls;
 using BSLib.DataViz.TreeMap;
 
 namespace DiskTracker
@@ -28,6 +29,7 @@ namespace DiskTracker
     public partial class MainForm : Form
     {
         private TreeMapViewer fDataMap;
+        private OptionsPicker fOptionsPicker;
 
         private bool fShowFreeSpace = true;
 
@@ -40,7 +42,21 @@ namespace DiskTracker
             Controls.Add(fDataMap);
             Controls.SetChildIndex(fDataMap, 0);
 
+            CreateOptionsControl();
+
             UpdateDisksList();
+        }
+
+        private void CreateOptionsControl()
+        {
+            var tsControlHost = new ToolStripOptionsPicker();
+            fOptionsPicker = tsControlHost.OptionsPicker;
+
+            toolStrip1.SuspendLayout();
+            toolStrip1.Items.Add(tsControlHost);
+            toolStrip1.ResumeLayout();
+
+            fOptionsPicker.Items = new string[] { "Show free space" };
         }
 
         private void UpdateDisksList()
@@ -94,6 +110,9 @@ namespace DiskTracker
 
         private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
         {
+            double allocatedFiles = 0.0d;
+            UpdateProgress(0, 0);
+
             Stack<DirStackItem> dirStack = new Stack<DirStackItem>(20);
 
             dirStack.Push(new DirStackItem(null, root));
@@ -122,6 +141,9 @@ namespace DiskTracker
                             }
 
                             CreateItem(dirItem, file.FullName, file.Length, 0.0f);
+
+                            allocatedFiles += file.Length;
+                            UpdateProgress(1, (int)(allocatedFiles / allocatedSpace * 100));
                         } catch (FileNotFoundException) {
                         }
                     }
@@ -138,6 +160,23 @@ namespace DiskTracker
                 } catch (UnauthorizedAccessException) {
                 } catch (DirectoryNotFoundException) {
                 }
+            }
+
+            UpdateProgress(2, 0);
+        }
+
+        private void UpdateProgress(int action, int value)
+        {
+            switch (action) {
+                case 0:
+                case 2:
+                    tsProgress.Maximum = 100;
+                    tsProgress.Value = 0;
+                    break;
+
+                case 1:
+                    tsProgress.Value = value;
+                    break;
             }
         }
 
