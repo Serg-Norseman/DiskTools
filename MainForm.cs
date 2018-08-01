@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -35,37 +36,21 @@ namespace DiskTracker
             fDataMap = new TreeMapViewer();
             fDataMap.Dock = DockStyle.Fill;
             Controls.Add(fDataMap);
+            Controls.SetChildIndex(fDataMap, 0);
 
             UpdateDisksList();
         }
 
         private void UpdateDisksList()
         {
-            DriveInfo[] allDrives = DriveInfo.GetDrives();
-
             tscmbDisk.Items.Clear();
+
+            DriveInfo[] allDrives = DriveInfo.GetDrives();
             foreach (DriveInfo d in allDrives) {
                 if (d.IsReady) {
                     tscmbDisk.Items.Add(new DiskItem(string.Format("{0} [{1}], {2}, {3}", d.Name, d.VolumeLabel, d.DriveType, d.DriveFormat), d));
                 }
-
-                /*WriteLine("Drive {0}", d.Name);
-                WriteLine("  Drive type: {0}", d.DriveType);
-                if (d.IsReady == true) {
-                    WriteLine("  Volume label: {0}", d.VolumeLabel);
-                    WriteLine("  File system: {0}", d.DriveFormat);
-                    WriteLine(
-                        "  Available space to current user:{0, 15} bytes",
-                        d.AvailableFreeSpace);
-
-                    WriteLine(
-                        "  Total available space:          {0, 15} bytes",
-                        d.TotalFreeSpace);
-
-                    WriteLine(
-                        "  Total size of drive:            {0, 15} bytes ",
-                        d.TotalSize);
-                }*/
+                /* d.TotalFreeSpace, d.TotalSize */
             }
         }
 
@@ -84,58 +69,71 @@ namespace DiskTracker
             fDataMap.Model.Clear();
             fDataMap.Invalidate();
 
-            try {
-                DiskItem item = tscmbDisk.SelectedItem as DiskItem;
-                DriveInfo di = item.Tag as DriveInfo;
-                DirectoryInfo rootDir = di.RootDirectory;
-                tslblPath.Text = rootDir.FullName;
+            DiskItem item = tscmbDisk.SelectedItem as DiskItem;
+            DriveInfo di = item.Tag as DriveInfo;
+            DirectoryInfo rootDir = di.RootDirectory;
+            tslblPath.Text = rootDir.FullName;
 
-                //string name = string.Format(hint, groupNum, groupSize, quality.ToString("0.00"));
-
-                //CreateItem(null, name, groupSize, quality);
-            } finally {
-            }
+            WalkDirectoryTree(rootDir);
 
             fDataMap.UpdateView();
         }
 
-        private static void WalkDirectoryTree(DirectoryInfo root)
+        private class DirStackItem
         {
-            FileInfo[] files = null;
-            DirectoryInfo[] subDirs = null;
+            public MapItem Parent;
+            public DirectoryInfo DirInfo;
 
-            // First, process all the files directly under this folder
-            try {
-                files = root.GetFiles("*.*");
+            public DirStackItem(MapItem parent, DirectoryInfo dirInfo)
+            {
+                Parent = parent;
+                DirInfo = dirInfo;
             }
-            // This is thrown if even one of the files requires permissions greater
-            // than the application provides.
-            catch (UnauthorizedAccessException e) {
-                // This code just writes out the message and continues to recurse.
-                // You may decide to do something different here. For example, you
-                // can try to elevate your privileges and access the file again.
-                //log.Add(e.Message);
-            } catch (DirectoryNotFoundException e) {
-                Console.WriteLine(e.Message);
-            }
+        }
 
-            if (files != null) {
-                foreach (FileInfo fi in files) {
-                    // In this example, we only access the existing FileInfo object. If we
-                    // want to open, delete or modify the file, then
-                    // a try-catch block is required here to handle the case
-                    // where the file has been deleted since the call to TraverseTree().
-                    Console.WriteLine(fi.FullName);
+        private void WalkDirectoryTree(DirectoryInfo root)
+        {
+            Stack<DirStackItem> dirStack = new Stack<DirStackItem>(20);
+
+            dirStack.Push(new DirStackItem(null, root));
+
+            while (dirStack.Count > 0) {
+                DirStackItem stackItem = dirStack.Pop();
+
+                DirectoryInfo currentDir = stackItem.DirInfo;
+                if ((currentDir.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint) {
+                    continue;
                 }
 
-                // Now find all the subdirectories under this directory.
-                subDirs = root.GetDirectories();
+                var dirItem = CreateItem(stackItem.Parent, currentDir.FullName, 0.0f, 0.0f);
 
-                foreach (System.IO.DirectoryInfo dirInfo in subDirs) {
-                    // Resursive call for each subdirectory.
-                    WalkDirectoryTree(dirInfo);
+                try {
+                    FileInfo[] files = currentDir.GetFiles("*.*");
+
+                    foreach (FileInfo file in files) {
+                        try {
+                            if ((file.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint) {
+                                continue;
+                            }
+
+                            CreateItem(dirItem, file.FullName, file.Length, 0.0f);
+                        } catch (FileNotFoundException) {
+                        }
+                    }
+                } catch (UnauthorizedAccessException) {
+                } catch (DirectoryNotFoundException) {
                 }
-            }            
+
+                try {
+                    DirectoryInfo[] subDirs = currentDir.GetDirectories();
+
+                    foreach (DirectoryInfo dir in subDirs) {
+                        dirStack.Push(new DirStackItem(dirItem, dir));
+                    }
+                } catch (UnauthorizedAccessException) {
+                } catch (DirectoryNotFoundException) {
+                }
+            }
         }
 
         private void tscmbDisk_SelectedIndexChanged(object sender, EventArgs e)
