@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -28,10 +29,11 @@ namespace DiskTracker
 {
     public partial class MainForm : Form
     {
+        private Dictionary<string, Color> fColorScheme;
         private TreeMapViewer fDataMap;
         private OptionsPicker fOptionsPicker;
 
-        private bool fShowFreeSpace = true;
+        private bool fShowFreeSpace = false;
 
         public MainForm()
         {
@@ -39,11 +41,13 @@ namespace DiskTracker
 
             fDataMap = new TreeMapViewer();
             fDataMap.Dock = DockStyle.Fill;
+            fDataMap.MouseoverHighlight = true;
             Controls.Add(fDataMap);
             Controls.SetChildIndex(fDataMap, 0);
 
             CreateOptionsControl();
 
+            UpdateColorScheme();
             UpdateDisksList();
         }
 
@@ -57,6 +61,25 @@ namespace DiskTracker
             toolStrip1.ResumeLayout();
 
             fOptionsPicker.Items = new string[] { "Show free space" };
+        }
+
+        private void UpdateColorScheme()
+        {
+            fColorScheme = new Dictionary<string, Color>();
+            fColorScheme.Add("zip", Color.BlueViolet);
+            fColorScheme.Add("rar", Color.BlueViolet);
+            fColorScheme.Add("cab", Color.BlueViolet);
+
+            fColorScheme.Add("iso", Color.Fuchsia);
+
+            fColorScheme.Add("vdi", Color.LimeGreen);
+
+            fColorScheme.Add("avi", Color.GreenYellow);
+            fColorScheme.Add("mpg", Color.GreenYellow);
+            fColorScheme.Add("mp4", Color.GreenYellow);
+            fColorScheme.Add("mpeg", Color.GreenYellow);
+            fColorScheme.Add("wmv", Color.GreenYellow);
+            fColorScheme.Add("fbr", Color.GreenYellow);
         }
 
         private void UpdateDisksList()
@@ -74,6 +97,13 @@ namespace DiskTracker
         private MapItem CreateItem(MapItem parent, string name, double size, float quality)
         {
             var item = fDataMap.Model.CreateItem(parent, name, size) as SimpleItem;
+
+            string ext = Path.GetExtension(name).TrimStart('.');
+            Color color;
+            if (!fColorScheme.TryGetValue(ext, out color)) {
+                color = Color.Silver;
+            }
+            item.Color = color;
 
             //double wavelength = Spectrum.ColdWavelength + (Spectrum.WavelengthMaximum - Spectrum.ColdWavelength) * (1.0f - quality);
             //item.Color = Spectrum.WavelengthToRGB(wavelength);
