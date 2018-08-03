@@ -20,9 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
-using BSLib.Controls;
+using BSLib;
 using BSLib.DataViz.TreeMap;
 
 namespace DiskTracker
@@ -31,9 +30,36 @@ namespace DiskTracker
     {
         private Dictionary<string, Color> fColorScheme;
         private TreeMapViewer fDataMap;
-        private OptionsPicker fOptionsPicker;
 
-        private bool fShowFreeSpace = false;
+        private bool fEnableColorscheme = true;
+        private bool fShowFreeSpace = true;
+        private bool fShowFileSize = true;
+        private bool fShowHiddenFiles = true;
+
+        public bool EnableColorscheme
+        {
+            get { return fEnableColorscheme; }
+            set { fEnableColorscheme = value; }
+        }
+
+        public bool ShowFreeSpace
+        {
+            get { return fShowFreeSpace; }
+            set { fShowFreeSpace = value; }
+        }
+
+        public bool ShowFileSize
+        {
+            get { return fShowFileSize; }
+            set { fShowFileSize = value; }
+        }
+
+        public bool ShowHiddenFiles
+        {
+            get { return fShowHiddenFiles; }
+            set { fShowHiddenFiles = value; }
+        }
+
 
         public MainForm()
         {
@@ -42,25 +68,17 @@ namespace DiskTracker
             fDataMap = new TreeMapViewer();
             fDataMap.Dock = DockStyle.Fill;
             fDataMap.MouseoverHighlight = true;
+            fDataMap.OnHintRequest += OnHintRequest;
+            fDataMap.ContextMenuStrip = contextMenuStrip1;
             Controls.Add(fDataMap);
             Controls.SetChildIndex(fDataMap, 0);
 
-            CreateOptionsControl();
+            tsbRefresh.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_refresh.gif");
+            tsbOptions.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_tools.gif");
+            tsbAbout.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_help.gif");
 
             UpdateColorScheme();
             UpdateDisksList();
-        }
-
-        private void CreateOptionsControl()
-        {
-            var tsControlHost = new ToolStripOptionsPicker();
-            fOptionsPicker = tsControlHost.OptionsPicker;
-
-            toolStrip1.SuspendLayout();
-            toolStrip1.Items.Add(tsControlHost);
-            toolStrip1.ResumeLayout();
-
-            fOptionsPicker.Items = new string[] { "Show free space" };
         }
 
         private void UpdateColorScheme()
@@ -80,6 +98,29 @@ namespace DiskTracker
             fColorScheme.Add("mpeg", Color.GreenYellow);
             fColorScheme.Add("wmv", Color.GreenYellow);
             fColorScheme.Add("fbr", Color.GreenYellow);
+            fColorScheme.Add("mov", Color.GreenYellow);
+
+            fColorScheme.Add("wav", Color.MediumSeaGreen);
+            fColorScheme.Add("mp3", Color.MediumSeaGreen);
+            fColorScheme.Add("wma", Color.MediumSeaGreen);
+
+            fColorScheme.Add("bmp", Color.PaleVioletRed);
+            fColorScheme.Add("jpg", Color.PaleVioletRed);
+            fColorScheme.Add("jpeg", Color.PaleVioletRed);
+            fColorScheme.Add("gif", Color.PaleVioletRed);
+            fColorScheme.Add("png", Color.PaleVioletRed);
+            fColorScheme.Add("tif", Color.PaleVioletRed);
+            fColorScheme.Add("tiff", Color.PaleVioletRed);
+            fColorScheme.Add("pcx", Color.PaleVioletRed);
+
+            fColorScheme.Add("mdb", Color.DodgerBlue);
+            fColorScheme.Add("doc", Color.DodgerBlue);
+            fColorScheme.Add("xls", Color.DodgerBlue);
+            fColorScheme.Add("docx", Color.DodgerBlue);
+            fColorScheme.Add("xlsx", Color.DodgerBlue);
+
+            fColorScheme.Add("exe", Color.Aquamarine);
+            fColorScheme.Add("dll", Color.Aquamarine);
         }
 
         private void UpdateDisksList()
@@ -98,12 +139,16 @@ namespace DiskTracker
         {
             var item = fDataMap.Model.CreateItem(parent, name, size) as SimpleItem;
 
-            string ext = Path.GetExtension(name).TrimStart('.');
-            Color color;
-            if (!fColorScheme.TryGetValue(ext, out color)) {
-                color = Color.Silver;
+            if (fEnableColorscheme) {
+                string ext = Path.GetExtension(name).TrimStart('.').ToLowerInvariant();
+                Color color;
+                if (!fColorScheme.TryGetValue(ext, out color)) {
+                    color = Color.Silver;
+                }
+                item.Color = color;
+            } else {
+                item.Color = Color.Silver;
             }
-            item.Color = color;
 
             //double wavelength = Spectrum.ColdWavelength + (Spectrum.WavelengthMaximum - Spectrum.ColdWavelength) * (1.0f - quality);
             //item.Color = Spectrum.WavelengthToRGB(wavelength);
@@ -114,28 +159,31 @@ namespace DiskTracker
         private void UpdateTreeMap()
         {
             fDataMap.Model.Clear();
-            fDataMap.Invalidate();
 
             DiskItem item = tscmbDisk.SelectedItem as DiskItem;
-            DriveInfo di = item.Tag as DriveInfo;
-            DirectoryInfo rootDir = di.RootDirectory;
-            tslblPath.Text = rootDir.FullName;
-
-            WalkDirectoryTree(rootDir, di.TotalSize - di.TotalFreeSpace, di.TotalFreeSpace);
+            if (item != null) {
+                DriveInfo di = item.Tag as DriveInfo;
+                DirectoryInfo rootDir = di.RootDirectory;
+                tslblPath.Text = rootDir.FullName;
+                WalkDirectoryTree(rootDir, di.TotalSize - di.TotalFreeSpace, di.TotalFreeSpace);
+            }
 
             fDataMap.UpdateView();
         }
 
-        private class DirStackItem
+        private bool CheckAttributes(FileAttributes attrs)
         {
-            public MapItem Parent;
-            public DirectoryInfo DirInfo;
-
-            public DirStackItem(MapItem parent, DirectoryInfo dirInfo)
-            {
-                Parent = parent;
-                DirInfo = dirInfo;
+            if (attrs.HasFlag(FileAttributes.ReparsePoint)) {
+                return false;
             }
+
+            if (!attrs.HasFlag(FileAttributes.Directory)) {
+                if (!fShowHiddenFiles && (attrs.HasFlag(FileAttributes.Hidden) || attrs.HasFlag(FileAttributes.System))) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
@@ -151,7 +199,7 @@ namespace DiskTracker
                 DirStackItem stackItem = dirStack.Pop();
 
                 DirectoryInfo currentDir = stackItem.DirInfo;
-                if ((currentDir.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint) {
+                if (!CheckAttributes(currentDir.Attributes)) {
                     continue;
                 }
 
@@ -166,7 +214,7 @@ namespace DiskTracker
 
                     foreach (FileInfo file in files) {
                         try {
-                            if ((file.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint) {
+                            if (!CheckAttributes(file.Attributes)) {
                                 continue;
                             }
 
@@ -195,6 +243,14 @@ namespace DiskTracker
             UpdateProgress(2, 0);
         }
 
+        private void OnHintRequest(object sender, HintRequestEventArgs args)
+        {
+            args.Hint = args.MapItem.Name;
+            if (fShowFileSize) {
+                args.Hint += "\r\n" + FileHelper.FileSizeToStr((long)args.MapItem.Size);
+            }
+        }
+
         private void UpdateProgress(int action, int value)
         {
             switch (action) {
@@ -205,12 +261,35 @@ namespace DiskTracker
                     break;
 
                 case 1:
-                    tsProgress.Value = value;
+                    if (value >= tsProgress.Minimum && value <= tsProgress.Maximum) {
+                        tsProgress.Value = value;
+                    }
                     break;
             }
         }
 
         private void tscmbDisk_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateTreeMap();
+        }
+
+        private void tsbAbout_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new AboutDlg()) {
+                dlg.ShowDialog();
+            }
+        }
+
+        private void tsbOptions_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new OptionsDlg(this)) {
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    UpdateTreeMap();
+                }
+            }
+        }
+
+        private void tsbRefresh_Click(object sender, EventArgs e)
         {
             UpdateTreeMap();
         }

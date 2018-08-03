@@ -16,37 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System.Drawing;
+using System.IO;
+using BSLib.DataViz.TreeMap;
 
 namespace DiskTracker
 {
-    public class DiskItem
+    internal class DirStackItem
     {
-        public readonly string Caption;
-        public readonly object Tag;
-        public readonly Image Image;
+        public MapItem Parent;
+        public DirectoryInfo DirInfo;
 
-        public DiskItem(string caption)
+        public DirStackItem(MapItem parent, DirectoryInfo dirInfo)
         {
-            Caption = caption;
-        }
-
-        public DiskItem(string caption, object tag)
-        {
-            Caption = caption;
-            Tag = tag;
-        }
-
-        public DiskItem(string caption, object tag, Image image)
-        {
-            Caption = caption;
-            Tag = tag;
-            Image = image;
-        }
-
-        public override string ToString()
-        {
-            return Caption;
+            Parent = parent;
+            DirInfo = dirInfo;
         }
     }
 }

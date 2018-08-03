@@ -6,5 +6,7 @@
 /bin/
 /obj/
 /ProfilingSessions/
+/ilmerge/ILMerge*.*
+/deploy/
 
-bscopy.cmd
+bsl_copy.cmd
