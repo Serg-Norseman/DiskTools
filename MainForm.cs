@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -69,7 +70,7 @@ namespace DiskTracker
             fDataMap.Dock = DockStyle.Fill;
             fDataMap.MouseoverHighlight = true;
             fDataMap.OnHintRequest += OnHintRequest;
-            fDataMap.ContextMenuStrip = contextMenuStrip1;
+            fDataMap.ContextMenuStrip = mnuTreeMap;
             Controls.Add(fDataMap);
             Controls.SetChildIndex(fDataMap, 0);
 
@@ -164,7 +165,6 @@ namespace DiskTracker
             if (item != null) {
                 DriveInfo di = item.Tag as DriveInfo;
                 DirectoryInfo rootDir = di.RootDirectory;
-                tslblPath.Text = rootDir.FullName;
                 WalkDirectoryTree(rootDir, di.TotalSize - di.TotalFreeSpace, di.TotalFreeSpace);
             }
 
@@ -189,6 +189,7 @@ namespace DiskTracker
         private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
         {
             double allocatedFiles = 0.0d;
+            MapItem rootItem = null;
             UpdateProgress(0, 0);
 
             Stack<DirStackItem> dirStack = new Stack<DirStackItem>(20);
@@ -203,11 +204,14 @@ namespace DiskTracker
                     continue;
                 }
 
-                if (currentDir == root && fShowFreeSpace) {
-                    CreateItem(stackItem.Parent, "FreeSpace", freeSpace, 0.0f);
-                }
-
                 var dirItem = CreateItem(stackItem.Parent, currentDir.FullName, 0.0f, 0.0f);
+                if (currentDir == root) {
+                    rootItem = dirItem;
+
+                    if (fShowFreeSpace) {
+                        CreateItem(dirItem, "FreeSpace", freeSpace, 0.0f);
+                    }
+                }
 
                 try {
                     FileInfo[] files = currentDir.GetFiles("*.*");
@@ -241,6 +245,7 @@ namespace DiskTracker
             }
 
             UpdateProgress(2, 0);
+            SetRoot(rootItem);
         }
 
         private void OnHintRequest(object sender, HintRequestEventArgs args)
@@ -292,6 +297,93 @@ namespace DiskTracker
         private void tsbRefresh_Click(object sender, EventArgs e)
         {
             UpdateTreeMap();
+        }
+
+        private void miOpenFile_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.CurrentItem != null) {
+                DTHelper.LoadExtFile(fDataMap.CurrentItem.Name);
+            }
+        }
+
+        private void miExplore_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.CurrentItem != null) {
+                string path = Path.GetDirectoryName(fDataMap.CurrentItem.Name);
+                DTHelper.LoadExtFile(path);
+            }
+        }
+
+        private void miProperties_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.CurrentItem != null) {
+                Process.Start(new ProcessStartInfo("file://" + fDataMap.CurrentItem.Name) { UseShellExecute = true, Verb = "properties" });
+            }
+        }
+
+        private void SetPath(string path)
+        {
+            tslblPath.Text = string.Format("Path: {0}", path);
+        }
+
+        private void SetRoot(MapItem rootItem)
+        {
+            fDataMap.RootItem = rootItem;
+            SetPath(rootItem.Name);
+        }
+
+        private void miDownLevel_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.UpperItem != null && Directory.Exists(fDataMap.UpperItem.Name)) {
+                SetRoot(fDataMap.UpperItem);
+            }
+        }
+
+        private void miUpLevel_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.RootItem != null) {
+                var parent = fDataMap.RootItem.Parent;
+
+                if (parent != null && Directory.Exists(parent.Name)) {
+                    SetRoot(parent);
+                }
+            }
+        }
+
+        private void miDownToFile_Click(object sender, EventArgs e)
+        {
+            if (fDataMap.CurrentItem != null && File.Exists(fDataMap.CurrentItem.Name)) {
+                var parent = fDataMap.CurrentItem.Parent;
+
+                if (parent != null && Directory.Exists(parent.Name)) {
+                    SetRoot(parent);
+                }
+            }
+        }
+
+        private void miUpToRoot_Click(object sender, EventArgs e)
+        {
+            var item = fDataMap.RootItem;
+            while (item.Parent != null) {
+                item = item.Parent;
+            }
+            if (item != null && Directory.Exists(item.Name)) {
+                SetRoot(item);
+            }
+        }
+
+        private void mnuTreeMap_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            bool hasItem = (fDataMap.CurrentItem != null);
+
+            miOpenFile.Enabled = hasItem;
+            miExplore.Enabled = hasItem;
+            miProperties.Enabled = hasItem;
+
+            miDownLevel.Enabled = (fDataMap.UpperItem != null);
+            miUpLevel.Enabled = (fDataMap.RootItem != null);
+            miDownToFile.Enabled = hasItem;
+            miUpToRoot.Enabled = (fDataMap.RootItem != null);
         }
     }
 }

@@ -7,25 +7,22 @@
         private System.Windows.Forms.ToolStripLabel tslblDisk;
         private System.Windows.Forms.ToolStripComboBox tscmbDisk;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripLabel tslblPathStub;
-        private System.Windows.Forms.ToolStripLabel tslblPath;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripProgressBar tsProgress;
         private System.Windows.Forms.ToolStripButton tsbAbout;
         private System.Windows.Forms.ToolStripButton tsbOptions;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton tsbRefresh;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem downOneLevelToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem upOneLevelToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem downToFileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem upToRootToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip mnuTreeMap;
+        private System.Windows.Forms.ToolStripMenuItem miDownLevel;
+        private System.Windows.Forms.ToolStripMenuItem miUpLevel;
+        private System.Windows.Forms.ToolStripMenuItem miDownToFile;
+        private System.Windows.Forms.ToolStripMenuItem miUpToRoot;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem openFileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem exploreToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miOpenFile;
+        private System.Windows.Forms.ToolStripMenuItem miExplore;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miProperties;
 
         protected override void Dispose(bool disposing)
         {
@@ -42,28 +39,26 @@
             this.tslblDisk = new System.Windows.Forms.ToolStripLabel();
             this.tscmbDisk = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tslblPathStub = new System.Windows.Forms.ToolStripLabel();
-            this.tslblPath = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbRefresh = new System.Windows.Forms.ToolStripButton();
             this.tsbOptions = new System.Windows.Forms.ToolStripButton();
             this.tsbAbout = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsProgress = new System.Windows.Forms.ToolStripProgressBar();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.downOneLevelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.upOneLevelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.downToFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.upToRootToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuTreeMap = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miDownLevel = new System.Windows.Forms.ToolStripMenuItem();
+            this.miUpLevel = new System.Windows.Forms.ToolStripMenuItem();
+            this.miDownToFile = new System.Windows.Forms.ToolStripMenuItem();
+            this.miUpToRoot = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.openFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exploreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miOpenFile = new System.Windows.Forms.ToolStripMenuItem();
+            this.miExplore = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
-            this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
+            this.tslblPath = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            this.contextMenuStrip1.SuspendLayout();
+            this.mnuTreeMap.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -73,9 +68,6 @@
             this.tslblDisk,
             this.tscmbDisk,
             this.toolStripSeparator1,
-            this.tslblPathStub,
-            this.tslblPath,
-            this.toolStripSeparator2,
             this.tsbRefresh,
             this.tsbOptions,
             this.tsbAbout,
@@ -103,23 +95,6 @@
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 28);
-            // 
-            // tslblPathStub
-            // 
-            this.tslblPathStub.Name = "tslblPathStub";
-            this.tslblPathStub.Size = new System.Drawing.Size(41, 25);
-            this.tslblPathStub.Text = "Path:";
-            // 
-            // tslblPath
-            // 
-            this.tslblPath.Name = "tslblPath";
-            this.tslblPath.Size = new System.Drawing.Size(15, 25);
-            this.tslblPath.Text = "-";
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 28);
             // 
             // tsbRefresh
             // 
@@ -157,94 +132,110 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsProgress});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 529);
+            this.tsProgress,
+            this.tslblPath});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 663);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(782, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(782, 28);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // tsProgress
             // 
             this.tsProgress.Name = "tsProgress";
-            this.tsProgress.Size = new System.Drawing.Size(200, 18);
+            this.tsProgress.Size = new System.Drawing.Size(200, 22);
             // 
-            // contextMenuStrip1
+            // mnuTreeMap
             // 
-            this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.downOneLevelToolStripMenuItem,
-            this.upOneLevelToolStripMenuItem,
-            this.downToFileToolStripMenuItem,
-            this.upToRootToolStripMenuItem,
+            this.mnuTreeMap.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.mnuTreeMap.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miDownLevel,
+            this.miUpLevel,
+            this.miDownToFile,
+            this.miUpToRoot,
             this.toolStripMenuItem1,
-            this.openFileToolStripMenuItem,
-            this.exploreToolStripMenuItem,
+            this.miOpenFile,
+            this.miExplore,
             this.toolStripMenuItem2,
-            this.propertiesToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(182, 184);
+            this.miProperties});
+            this.mnuTreeMap.Name = "contextMenuStrip1";
+            this.mnuTreeMap.Size = new System.Drawing.Size(182, 184);
+            this.mnuTreeMap.Opening += new System.ComponentModel.CancelEventHandler(this.mnuTreeMap_Opening);
             // 
-            // downOneLevelToolStripMenuItem
+            // miDownLevel
             // 
-            this.downOneLevelToolStripMenuItem.Name = "downOneLevelToolStripMenuItem";
-            this.downOneLevelToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.downOneLevelToolStripMenuItem.Text = "Down one level";
+            this.miDownLevel.Name = "miDownLevel";
+            this.miDownLevel.Size = new System.Drawing.Size(181, 24);
+            this.miDownLevel.Text = "Down one level";
+            this.miDownLevel.Click += new System.EventHandler(this.miDownLevel_Click);
             // 
-            // upOneLevelToolStripMenuItem
+            // miUpLevel
             // 
-            this.upOneLevelToolStripMenuItem.Name = "upOneLevelToolStripMenuItem";
-            this.upOneLevelToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.upOneLevelToolStripMenuItem.Text = "Up one level";
+            this.miUpLevel.Name = "miUpLevel";
+            this.miUpLevel.Size = new System.Drawing.Size(181, 24);
+            this.miUpLevel.Text = "Up one level";
+            this.miUpLevel.Click += new System.EventHandler(this.miUpLevel_Click);
             // 
-            // downToFileToolStripMenuItem
+            // miDownToFile
             // 
-            this.downToFileToolStripMenuItem.Name = "downToFileToolStripMenuItem";
-            this.downToFileToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.downToFileToolStripMenuItem.Text = "Down to file";
+            this.miDownToFile.Name = "miDownToFile";
+            this.miDownToFile.Size = new System.Drawing.Size(181, 24);
+            this.miDownToFile.Text = "Down to file";
+            this.miDownToFile.Click += new System.EventHandler(this.miDownToFile_Click);
             // 
-            // upToRootToolStripMenuItem
+            // miUpToRoot
             // 
-            this.upToRootToolStripMenuItem.Name = "upToRootToolStripMenuItem";
-            this.upToRootToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.upToRootToolStripMenuItem.Text = "Up to root";
+            this.miUpToRoot.Name = "miUpToRoot";
+            this.miUpToRoot.Size = new System.Drawing.Size(181, 24);
+            this.miUpToRoot.Text = "Up to root";
+            this.miUpToRoot.Click += new System.EventHandler(this.miUpToRoot_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(178, 6);
             // 
-            // openFileToolStripMenuItem
+            // miOpenFile
             // 
-            this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
-            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.openFileToolStripMenuItem.Text = "Open file";
+            this.miOpenFile.Name = "miOpenFile";
+            this.miOpenFile.Size = new System.Drawing.Size(181, 24);
+            this.miOpenFile.Text = "Open file";
+            this.miOpenFile.Click += new System.EventHandler(this.miOpenFile_Click);
             // 
-            // exploreToolStripMenuItem
+            // miExplore
             // 
-            this.exploreToolStripMenuItem.Name = "exploreToolStripMenuItem";
-            this.exploreToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.exploreToolStripMenuItem.Text = "Explore";
+            this.miExplore.Name = "miExplore";
+            this.miExplore.Size = new System.Drawing.Size(181, 24);
+            this.miExplore.Text = "Explore";
+            this.miExplore.Click += new System.EventHandler(this.miExplore_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(178, 6);
             // 
-            // propertiesToolStripMenuItem
+            // miProperties
             // 
-            this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
-            this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(181, 24);
-            this.propertiesToolStripMenuItem.Text = "Properties";
+            this.miProperties.Name = "miProperties";
+            this.miProperties.Size = new System.Drawing.Size(181, 24);
+            this.miProperties.Text = "Properties";
+            this.miProperties.Click += new System.EventHandler(this.miProperties_Click);
+            // 
+            // tslblPath
+            // 
+            this.tslblPath.Name = "tslblPath";
+            this.tslblPath.Size = new System.Drawing.Size(15, 23);
+            this.tslblPath.Text = "-";
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(782, 553);
+            this.ClientSize = new System.Drawing.Size(782, 691);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DiskTracker";
@@ -252,10 +243,12 @@
             this.toolStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            this.contextMenuStrip1.ResumeLayout(false);
+            this.mnuTreeMap.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
+
+        private System.Windows.Forms.ToolStripStatusLabel tslblPath;
     }
 }
