@@ -66,10 +66,13 @@ namespace DiskTracker
         {
             InitializeComponent();
 
+            LoadOptions(DTHelper.GetAppPath() + "DiskTracker.ini");
+
             fDataMap = new TreeMapViewer();
             fDataMap.Dock = DockStyle.Fill;
             fDataMap.MouseoverHighlight = true;
             fDataMap.OnHintRequest += OnHintRequest;
+            fDataMap.MouseMove += OnMouseMove;
             fDataMap.ContextMenuStrip = mnuTreeMap;
             Controls.Add(fDataMap);
             Controls.SetChildIndex(fDataMap, 0);
@@ -80,6 +83,11 @@ namespace DiskTracker
 
             UpdateColorScheme();
             UpdateDisksList();
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            SaveOptions(DTHelper.GetAppPath() + "DiskTracker.ini");
         }
 
         private void UpdateColorScheme()
@@ -256,6 +264,18 @@ namespace DiskTracker
             }
         }
 
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            var curItem = fDataMap.CurrentItem;
+            string curFile = (curItem == null) ? "-" : curItem.Name + ", " + FileHelper.FileSizeToStr((long)curItem.Size);
+
+            var upperItem = fDataMap.UpperItem;
+            string upDir = (upperItem == null) ? "-" : upperItem.Name + ", " + FileHelper.FileSizeToStr((long)upperItem.GetCalcSize());
+
+            tslblBasePath.Text = upDir;
+            tslblCurFile.Text = curFile;
+        }
+
         private void UpdateProgress(int action, int value)
         {
             switch (action) {
@@ -384,6 +404,64 @@ namespace DiskTracker
             miUpLevel.Enabled = (fDataMap.RootItem != null);
             miDownToFile.Enabled = hasItem;
             miUpToRoot.Enabled = (fDataMap.RootItem != null);
+        }
+
+
+        public void LoadOptions(IniFile ini)
+        {
+            if (ini == null)
+                throw new ArgumentNullException("ini");
+
+            fEnableColorscheme = ini.ReadBool("Common", "EnableColorscheme", true);
+            fShowFreeSpace = ini.ReadBool("Common", "ShowFreeSpace", true);
+            fShowFileSize = ini.ReadBool("Common", "ShowFileSize", true);
+            fShowHiddenFiles = ini.ReadBool("Common", "ShowHiddenFiles", true);
+        }
+
+        public void SaveOptions(IniFile ini)
+        {
+            if (ini == null)
+                throw new ArgumentNullException("ini");
+
+            ini.WriteBool("Common", "EnableColorscheme", fEnableColorscheme);
+            ini.WriteBool("Common", "ShowFreeSpace", fShowFreeSpace);
+            ini.WriteBool("Common", "ShowFileSize", fShowFileSize);
+            ini.WriteBool("Common", "ShowHiddenFiles", fShowHiddenFiles);
+        }
+
+        public void LoadOptions(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                throw new ArgumentNullException("fileName");
+
+            try {
+                IniFile ini = new IniFile(fileName);
+                try {
+                    LoadOptions(ini);
+                } finally {
+                    ini.Dispose();
+                }
+            } catch (Exception ex) {
+                //Logger.LogWrite("DiskTracker.LoadFromFile(): " + ex.Message);
+            }
+        }
+
+        public void SaveOptions(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                throw new ArgumentNullException("fileName");
+
+            try {
+                IniFile ini = new IniFile(fileName);
+
+                try {
+                    SaveOptions(ini);
+                } finally {
+                    ini.Dispose();
+                }
+            } catch (Exception ex) {
+                //Logger.LogWrite("DiskTracker.SaveToFile(): " + ex.Message);
+            }
         }
     }
 }

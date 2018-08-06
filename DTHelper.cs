@@ -41,6 +41,14 @@ namespace DiskTracker
             return result;
         }
 
+        public static string GetAppPath()
+        {
+            Assembly assembly = typeof(DTHelper).Assembly;
+            Module[] mods = assembly.GetModules();
+            string fn = mods[0].FullyQualifiedName;
+            return Path.GetDirectoryName(fn) + Path.DirectorySeparatorChar;
+        }
+
         public static string GetAppCopyright()
         {
             Assembly assembly = typeof(DTHelper).Assembly;
