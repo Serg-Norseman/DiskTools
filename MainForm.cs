@@ -95,9 +95,13 @@ namespace DiskTracker
             fColorScheme = new Dictionary<string, Color>();
             fColorScheme.Add("zip", Color.BlueViolet);
             fColorScheme.Add("rar", Color.BlueViolet);
-            fColorScheme.Add("cab", Color.BlueViolet);
+            fColorScheme.Add("7z", Color.BlueViolet);
+            fColorScheme.Add("lzma", Color.BlueViolet);
 
+            fColorScheme.Add("cab", Color.Fuchsia);
             fColorScheme.Add("iso", Color.Fuchsia);
+            fColorScheme.Add("msi", Color.Fuchsia);
+            fColorScheme.Add("msp", Color.Fuchsia);
 
             fColorScheme.Add("vdi", Color.LimeGreen);
 
@@ -122,14 +126,39 @@ namespace DiskTracker
             fColorScheme.Add("tiff", Color.PaleVioletRed);
             fColorScheme.Add("pcx", Color.PaleVioletRed);
 
+            fColorScheme.Add("ost", Color.BlueViolet);
+
             fColorScheme.Add("mdb", Color.DodgerBlue);
+            fColorScheme.Add("accdb", Color.DodgerBlue);
             fColorScheme.Add("doc", Color.DodgerBlue);
-            fColorScheme.Add("xls", Color.DodgerBlue);
             fColorScheme.Add("docx", Color.DodgerBlue);
+            fColorScheme.Add("xls", Color.DodgerBlue);
             fColorScheme.Add("xlsx", Color.DodgerBlue);
+            fColorScheme.Add("ppt", Color.DodgerBlue);
+            fColorScheme.Add("pptx", Color.DodgerBlue);
+            fColorScheme.Add("pdf", Color.DodgerBlue);
+            fColorScheme.Add("rtf", Color.DodgerBlue);
+            fColorScheme.Add("txt", Color.DodgerBlue);
+
+            fColorScheme.Add("vsd", Color.RoyalBlue);
+            fColorScheme.Add("vsdx", Color.RoyalBlue);
+            fColorScheme.Add("dwg", Color.RoyalBlue);
+            fColorScheme.Add("pdi", Color.RoyalBlue);
+            fColorScheme.Add("svg", Color.RoyalBlue);
+
+            fColorScheme.Add("htm", Color.DeepSkyBlue);
+            fColorScheme.Add("html", Color.DeepSkyBlue);
+            fColorScheme.Add("chm", Color.DeepSkyBlue);
+            fColorScheme.Add("css", Color.DeepSkyBlue);
+            fColorScheme.Add("js", Color.DeepSkyBlue);
 
             fColorScheme.Add("exe", Color.Aquamarine);
             fColorScheme.Add("dll", Color.Aquamarine);
+            fColorScheme.Add("pdb", Color.Aquamarine);
+            fColorScheme.Add("ocx", Color.Aquamarine);
+            fColorScheme.Add("sys", Color.Aquamarine);
+            fColorScheme.Add("cpl", Color.Aquamarine);
+            fColorScheme.Add("jar", Color.Aquamarine);
         }
 
         private void UpdateDisksList()
