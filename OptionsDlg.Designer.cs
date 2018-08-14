@@ -6,11 +6,6 @@
 		private System.Windows.Forms.Button btnCancel;
         private System.ComponentModel.IContainer components;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.CheckBox chkShowFreeSpace;
-        private System.Windows.Forms.CheckBox chkShowHiddenFiles;
-        private System.Windows.Forms.CheckBox chkMaximumDepth;
-        private System.Windows.Forms.CheckBox chkShowFileSize;
-        private System.Windows.Forms.CheckBox chkEnableColorscheme;
 
         private void InitializeComponent()
 		{
@@ -18,19 +13,33 @@
             this.btnAccept = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.chkShowFreeSpace = new System.Windows.Forms.CheckBox();
-            this.chkShowHiddenFiles = new System.Windows.Forms.CheckBox();
-            this.chkMaximumDepth = new System.Windows.Forms.CheckBox();
-            this.chkShowFileSize = new System.Windows.Forms.CheckBox();
+            this.tcOptions = new System.Windows.Forms.TabControl();
+            this.tabCommon = new System.Windows.Forms.TabPage();
+            this.tabColorscheme = new System.Windows.Forms.TabPage();
             this.chkEnableColorscheme = new System.Windows.Forms.CheckBox();
+            this.chkShowFileSize = new System.Windows.Forms.CheckBox();
+            this.chkMaximumDepth = new System.Windows.Forms.CheckBox();
+            this.chkShowHiddenFiles = new System.Windows.Forms.CheckBox();
+            this.chkShowFreeSpace = new System.Windows.Forms.CheckBox();
+            this.lstColors = new System.Windows.Forms.ListBox();
+            this.lblExt = new System.Windows.Forms.Label();
+            this.txtExt = new System.Windows.Forms.TextBox();
+            this.btnColor = new System.Windows.Forms.Button();
+            this.btnAdd = new System.Windows.Forms.Button();
+            this.btnRemove = new System.Windows.Forms.Button();
+            this.btnReset = new System.Windows.Forms.Button();
+            this.tcOptions.SuspendLayout();
+            this.tabCommon.SuspendLayout();
+            this.tabColorscheme.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnAccept
             // 
             this.btnAccept.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnAccept.Location = new System.Drawing.Point(247, 201);
+            this.btnAccept.Location = new System.Drawing.Point(180, 254);
+            this.btnAccept.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnAccept.Name = "btnAccept";
-            this.btnAccept.Size = new System.Drawing.Size(114, 30);
+            this.btnAccept.Size = new System.Drawing.Size(91, 24);
             this.btnAccept.TabIndex = 5;
             this.btnAccept.Text = "Accept";
             this.btnAccept.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -40,88 +49,222 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnCancel.Location = new System.Drawing.Point(371, 201);
+            this.btnCancel.Location = new System.Drawing.Point(275, 254);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(113, 30);
+            this.btnCancel.Size = new System.Drawing.Size(90, 24);
             this.btnCancel.TabIndex = 6;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // chkShowFreeSpace
+            // tcOptions
             // 
-            this.chkShowFreeSpace.AutoSize = true;
-            this.chkShowFreeSpace.Location = new System.Drawing.Point(12, 12);
-            this.chkShowFreeSpace.Name = "chkShowFreeSpace";
-            this.chkShowFreeSpace.Size = new System.Drawing.Size(153, 21);
-            this.chkShowFreeSpace.TabIndex = 7;
-            this.chkShowFreeSpace.Text = "Show free diskspace";
-            this.chkShowFreeSpace.UseVisualStyleBackColor = true;
+            this.tcOptions.Controls.Add(this.tabCommon);
+            this.tcOptions.Controls.Add(this.tabColorscheme);
+            this.tcOptions.Location = new System.Drawing.Point(13, 13);
+            this.tcOptions.Name = "tcOptions";
+            this.tcOptions.SelectedIndex = 0;
+            this.tcOptions.Size = new System.Drawing.Size(352, 236);
+            this.tcOptions.TabIndex = 8;
             // 
-            // chkShowHiddenFiles
+            // tabCommon
             // 
-            this.chkShowHiddenFiles.AutoSize = true;
-            this.chkShowHiddenFiles.Location = new System.Drawing.Point(12, 39);
-            this.chkShowHiddenFiles.Name = "chkShowHiddenFiles";
-            this.chkShowHiddenFiles.Size = new System.Drawing.Size(209, 21);
-            this.chkShowHiddenFiles.TabIndex = 7;
-            this.chkShowHiddenFiles.Text = "Show hidden and system files";
-            this.chkShowHiddenFiles.UseVisualStyleBackColor = true;
+            this.tabCommon.BackColor = System.Drawing.SystemColors.Control;
+            this.tabCommon.Controls.Add(this.chkEnableColorscheme);
+            this.tabCommon.Controls.Add(this.chkShowFileSize);
+            this.tabCommon.Controls.Add(this.chkMaximumDepth);
+            this.tabCommon.Controls.Add(this.chkShowHiddenFiles);
+            this.tabCommon.Controls.Add(this.chkShowFreeSpace);
+            this.tabCommon.Location = new System.Drawing.Point(4, 22);
+            this.tabCommon.Name = "tabCommon";
+            this.tabCommon.Padding = new System.Windows.Forms.Padding(10);
+            this.tabCommon.Size = new System.Drawing.Size(417, 186);
+            this.tabCommon.TabIndex = 0;
+            this.tabCommon.Text = "Common";
+            // 
+            // tabColorscheme
+            // 
+            this.tabColorscheme.BackColor = System.Drawing.SystemColors.Control;
+            this.tabColorscheme.Controls.Add(this.btnReset);
+            this.tabColorscheme.Controls.Add(this.btnRemove);
+            this.tabColorscheme.Controls.Add(this.btnAdd);
+            this.tabColorscheme.Controls.Add(this.btnColor);
+            this.tabColorscheme.Controls.Add(this.txtExt);
+            this.tabColorscheme.Controls.Add(this.lblExt);
+            this.tabColorscheme.Controls.Add(this.lstColors);
+            this.tabColorscheme.Location = new System.Drawing.Point(4, 22);
+            this.tabColorscheme.Name = "tabColorscheme";
+            this.tabColorscheme.Padding = new System.Windows.Forms.Padding(10);
+            this.tabColorscheme.Size = new System.Drawing.Size(344, 210);
+            this.tabColorscheme.TabIndex = 1;
+            this.tabColorscheme.Text = "Colorscheme";
+            // 
+            // chkEnableColorscheme
+            // 
+            this.chkEnableColorscheme.AutoSize = true;
+            this.chkEnableColorscheme.Location = new System.Drawing.Point(12, 96);
+            this.chkEnableColorscheme.Margin = new System.Windows.Forms.Padding(2);
+            this.chkEnableColorscheme.Name = "chkEnableColorscheme";
+            this.chkEnableColorscheme.Size = new System.Drawing.Size(120, 17);
+            this.chkEnableColorscheme.TabIndex = 8;
+            this.chkEnableColorscheme.Text = "Enable colorscheme";
+            this.chkEnableColorscheme.UseVisualStyleBackColor = true;
+            // 
+            // chkShowFileSize
+            // 
+            this.chkShowFileSize.AutoSize = true;
+            this.chkShowFileSize.Location = new System.Drawing.Point(12, 75);
+            this.chkShowFileSize.Margin = new System.Windows.Forms.Padding(2);
+            this.chkShowFileSize.Name = "chkShowFileSize";
+            this.chkShowFileSize.Size = new System.Drawing.Size(90, 17);
+            this.chkShowFileSize.TabIndex = 9;
+            this.chkShowFileSize.Text = "Show file size";
+            this.chkShowFileSize.UseVisualStyleBackColor = true;
             // 
             // chkMaximumDepth
             // 
             this.chkMaximumDepth.AutoSize = true;
             this.chkMaximumDepth.Enabled = false;
-            this.chkMaximumDepth.Location = new System.Drawing.Point(12, 66);
+            this.chkMaximumDepth.Location = new System.Drawing.Point(12, 54);
+            this.chkMaximumDepth.Margin = new System.Windows.Forms.Padding(2);
             this.chkMaximumDepth.Name = "chkMaximumDepth";
-            this.chkMaximumDepth.Size = new System.Drawing.Size(129, 21);
-            this.chkMaximumDepth.TabIndex = 7;
+            this.chkMaximumDepth.Size = new System.Drawing.Size(101, 17);
+            this.chkMaximumDepth.TabIndex = 10;
             this.chkMaximumDepth.Text = "Maximum depth";
             this.chkMaximumDepth.UseVisualStyleBackColor = true;
             // 
-            // chkShowFileSize
+            // chkShowHiddenFiles
             // 
-            this.chkShowFileSize.AutoSize = true;
-            this.chkShowFileSize.Location = new System.Drawing.Point(12, 93);
-            this.chkShowFileSize.Name = "chkShowFileSize";
-            this.chkShowFileSize.Size = new System.Drawing.Size(108, 21);
-            this.chkShowFileSize.TabIndex = 7;
-            this.chkShowFileSize.Text = "Show file size";
-            this.chkShowFileSize.UseVisualStyleBackColor = true;
+            this.chkShowHiddenFiles.AutoSize = true;
+            this.chkShowHiddenFiles.Location = new System.Drawing.Point(12, 33);
+            this.chkShowHiddenFiles.Margin = new System.Windows.Forms.Padding(2);
+            this.chkShowHiddenFiles.Name = "chkShowHiddenFiles";
+            this.chkShowHiddenFiles.Size = new System.Drawing.Size(167, 17);
+            this.chkShowHiddenFiles.TabIndex = 11;
+            this.chkShowHiddenFiles.Text = "Show hidden and system files";
+            this.chkShowHiddenFiles.UseVisualStyleBackColor = true;
             // 
-            // chkEnableColorscheme
+            // chkShowFreeSpace
             // 
-            this.chkEnableColorscheme.AutoSize = true;
-            this.chkEnableColorscheme.Location = new System.Drawing.Point(12, 120);
-            this.chkEnableColorscheme.Name = "chkEnableColorscheme";
-            this.chkEnableColorscheme.Size = new System.Drawing.Size(151, 21);
-            this.chkEnableColorscheme.TabIndex = 7;
-            this.chkEnableColorscheme.Text = "Enable colorscheme";
-            this.chkEnableColorscheme.UseVisualStyleBackColor = true;
+            this.chkShowFreeSpace.AutoSize = true;
+            this.chkShowFreeSpace.Location = new System.Drawing.Point(12, 12);
+            this.chkShowFreeSpace.Margin = new System.Windows.Forms.Padding(2);
+            this.chkShowFreeSpace.Name = "chkShowFreeSpace";
+            this.chkShowFreeSpace.Size = new System.Drawing.Size(124, 17);
+            this.chkShowFreeSpace.TabIndex = 12;
+            this.chkShowFreeSpace.Text = "Show free diskspace";
+            this.chkShowFreeSpace.UseVisualStyleBackColor = true;
+            // 
+            // lstColors
+            // 
+            this.lstColors.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.lstColors.FormattingEnabled = true;
+            this.lstColors.Location = new System.Drawing.Point(13, 13);
+            this.lstColors.Name = "lstColors";
+            this.lstColors.Size = new System.Drawing.Size(186, 186);
+            this.lstColors.TabIndex = 0;
+            this.lstColors.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lstColors_DrawItem);
+            this.lstColors.SelectedIndexChanged += new System.EventHandler(this.lstColors_SelectedIndexChanged);
+            // 
+            // lblExt
+            // 
+            this.lblExt.AutoSize = true;
+            this.lblExt.Location = new System.Drawing.Point(205, 13);
+            this.lblExt.Name = "lblExt";
+            this.lblExt.Size = new System.Drawing.Size(54, 13);
+            this.lblExt.TabIndex = 1;
+            this.lblExt.Text = "Extension";
+            // 
+            // txtExt
+            // 
+            this.txtExt.Location = new System.Drawing.Point(208, 29);
+            this.txtExt.Name = "txtExt";
+            this.txtExt.Size = new System.Drawing.Size(119, 21);
+            this.txtExt.TabIndex = 2;
+            // 
+            // btnColor
+            // 
+            this.btnColor.Location = new System.Drawing.Point(208, 56);
+            this.btnColor.Name = "btnColor";
+            this.btnColor.Size = new System.Drawing.Size(119, 23);
+            this.btnColor.TabIndex = 3;
+            this.btnColor.Text = "Color";
+            this.btnColor.UseVisualStyleBackColor = true;
+            this.btnColor.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnAdd
+            // 
+            this.btnAdd.Location = new System.Drawing.Point(208, 116);
+            this.btnAdd.Name = "btnAdd";
+            this.btnAdd.Size = new System.Drawing.Size(119, 23);
+            this.btnAdd.TabIndex = 3;
+            this.btnAdd.Text = "Add";
+            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
+            // 
+            // btnRemove
+            // 
+            this.btnRemove.Location = new System.Drawing.Point(208, 145);
+            this.btnRemove.Name = "btnRemove";
+            this.btnRemove.Size = new System.Drawing.Size(119, 23);
+            this.btnRemove.TabIndex = 3;
+            this.btnRemove.Text = "Remove";
+            this.btnRemove.UseVisualStyleBackColor = true;
+            this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
+            // 
+            // btnReset
+            // 
+            this.btnReset.Location = new System.Drawing.Point(208, 174);
+            this.btnReset.Name = "btnReset";
+            this.btnReset.Size = new System.Drawing.Size(119, 23);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "Reset";
+            this.btnReset.UseVisualStyleBackColor = true;
+            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
             // OptionsDlg
             // 
             this.AcceptButton = this.btnAccept;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(496, 243);
-            this.Controls.Add(this.chkEnableColorscheme);
-            this.Controls.Add(this.chkShowFileSize);
-            this.Controls.Add(this.chkMaximumDepth);
-            this.Controls.Add(this.chkShowHiddenFiles);
-            this.Controls.Add(this.chkShowFreeSpace);
+            this.ClientSize = new System.Drawing.Size(378, 290);
+            this.Controls.Add(this.tcOptions);
             this.Controls.Add(this.btnAccept);
             this.Controls.Add(this.btnCancel);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "OptionsDlg";
+            this.Padding = new System.Windows.Forms.Padding(10);
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Options";
+            this.tcOptions.ResumeLayout(false);
+            this.tabCommon.ResumeLayout(false);
+            this.tabCommon.PerformLayout();
+            this.tabColorscheme.ResumeLayout(false);
+            this.tabColorscheme.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
+
 		}
+
+        private System.Windows.Forms.TabControl tcOptions;
+        private System.Windows.Forms.TabPage tabCommon;
+        private System.Windows.Forms.CheckBox chkEnableColorscheme;
+        private System.Windows.Forms.CheckBox chkShowFileSize;
+        private System.Windows.Forms.CheckBox chkMaximumDepth;
+        private System.Windows.Forms.CheckBox chkShowHiddenFiles;
+        private System.Windows.Forms.CheckBox chkShowFreeSpace;
+        private System.Windows.Forms.TabPage tabColorscheme;
+        private System.Windows.Forms.TextBox txtExt;
+        private System.Windows.Forms.Label lblExt;
+        private System.Windows.Forms.ListBox lstColors;
+        private System.Windows.Forms.Button btnColor;
+        private System.Windows.Forms.Button btnReset;
+        private System.Windows.Forms.Button btnRemove;
+        private System.Windows.Forms.Button btnAdd;
     }
 }

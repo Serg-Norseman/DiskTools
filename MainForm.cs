@@ -29,13 +29,18 @@ namespace DiskTracker
 {
     public partial class MainForm : Form
     {
-        private Dictionary<string, Color> fColorScheme;
-        private TreeMapViewer fDataMap;
+        private readonly Dictionary<string, Color> fColorScheme;
+        private readonly TreeMapViewer fDataMap;
 
         private bool fEnableColorscheme = true;
         private bool fShowFreeSpace = true;
         private bool fShowFileSize = true;
         private bool fShowHiddenFiles = true;
+
+        public Dictionary<string, Color> Colorscheme
+        {
+            get { return fColorScheme; }
+        }
 
         public bool EnableColorscheme
         {
@@ -66,6 +71,8 @@ namespace DiskTracker
         {
             InitializeComponent();
 
+            fColorScheme = new Dictionary<string, Color>();
+
             LoadOptions(DTHelper.GetAppPath() + "DiskTracker.ini");
 
             fDataMap = new TreeMapViewer();
@@ -81,7 +88,10 @@ namespace DiskTracker
             tsbOptions.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_tools.gif");
             tsbAbout.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_help.gif");
 
-            UpdateColorScheme();
+            if (fColorScheme.Count <= 0) {
+                ResetColorScheme();
+            }
+
             UpdateDisksList();
         }
 
@@ -90,9 +100,10 @@ namespace DiskTracker
             SaveOptions(DTHelper.GetAppPath() + "DiskTracker.ini");
         }
 
-        private void UpdateColorScheme()
+        internal void ResetColorScheme()
         {
-            fColorScheme = new Dictionary<string, Color>();
+            fColorScheme.Clear();
+
             fColorScheme.Add("zip", Color.BlueViolet);
             fColorScheme.Add("rar", Color.BlueViolet);
             fColorScheme.Add("7z", Color.BlueViolet);
@@ -139,6 +150,8 @@ namespace DiskTracker
             fColorScheme.Add("pdf", Color.DodgerBlue);
             fColorScheme.Add("rtf", Color.DodgerBlue);
             fColorScheme.Add("txt", Color.DodgerBlue);
+            fColorScheme.Add("djvu", Color.DodgerBlue);
+            fColorScheme.Add("fb2", Color.DodgerBlue);
 
             fColorScheme.Add("vsd", Color.RoyalBlue);
             fColorScheme.Add("vsdx", Color.RoyalBlue);
@@ -159,6 +172,14 @@ namespace DiskTracker
             fColorScheme.Add("sys", Color.Aquamarine);
             fColorScheme.Add("cpl", Color.Aquamarine);
             fColorScheme.Add("jar", Color.Aquamarine);
+
+            fColorScheme.Add("ini", Color.Crimson);
+            fColorScheme.Add("xml", Color.Crimson);
+            fColorScheme.Add("yml", Color.Crimson);
+            fColorScheme.Add("yaml", Color.Crimson);
+
+            fColorScheme.Add("ttf", Color.Indigo);
+            fColorScheme.Add("ttc", Color.Indigo);
         }
 
         private void UpdateDisksList()
@@ -445,6 +466,18 @@ namespace DiskTracker
             fShowFreeSpace = ini.ReadBool("Common", "ShowFreeSpace", true);
             fShowFileSize = ini.ReadBool("Common", "ShowFileSize", true);
             fShowHiddenFiles = ini.ReadBool("Common", "ShowHiddenFiles", true);
+
+            fColorScheme.Clear();
+            int num = ini.ReadInteger("ColorScheme", "ExtCount", 0);
+            for (int i = 0; i < num; i++) {
+                string si = i.ToString();
+                string ext = ini.ReadString("ColorScheme", "Ext" + si, "");
+                int color = ini.ReadInteger("ColorScheme", "Color" + si, 0);
+
+                if (!string.IsNullOrEmpty(ext) && color != 0) {
+                    fColorScheme.Add(ext, Color.FromArgb(color));
+                }
+            }
         }
 
         public void SaveOptions(IniFile ini)
@@ -456,6 +489,15 @@ namespace DiskTracker
             ini.WriteBool("Common", "ShowFreeSpace", fShowFreeSpace);
             ini.WriteBool("Common", "ShowFileSize", fShowFileSize);
             ini.WriteBool("Common", "ShowHiddenFiles", fShowHiddenFiles);
+
+            ini.WriteInteger("ColorScheme", "ExtCount", fColorScheme.Count);
+            int i = 0;
+            foreach (var pair in fColorScheme) {
+                string si = i.ToString();
+                ini.WriteString("ColorScheme", "Ext" + si, pair.Key);
+                ini.WriteInteger("ColorScheme", "Color" + si, pair.Value.ToArgb());
+                i += 1;
+            }
         }
 
         public void LoadOptions(string fileName)

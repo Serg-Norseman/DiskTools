@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace DiskTracker
@@ -48,6 +49,8 @@ namespace DiskTracker
             chkShowFileSize.Checked = fMainForm.ShowFileSize;
             chkEnableColorscheme.Checked = fMainForm.EnableColorscheme;
             chkShowHiddenFiles.Checked = fMainForm.ShowHiddenFiles;
+
+            UpdateColorscheme();
         }
 
         private void btnAccept_Click(object sender, EventArgs e)
@@ -61,6 +64,92 @@ namespace DiskTracker
                 DialogResult = DialogResult.OK;
             } catch (Exception) {
                 DialogResult = DialogResult.None;
+            }
+        }
+
+        private void UpdateColorscheme()
+        {
+            lstColors.Items.Clear();
+            foreach (var pair in fMainForm.Colorscheme) {
+                lstColors.Items.Add(pair.Key);
+            }
+        }
+
+        private void btnColor_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new ColorDialog()) {
+                dlg.Color = btnColor.BackColor;
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    btnColor.BackColor = dlg.Color;
+
+                    if (fMainForm.Colorscheme.ContainsKey(txtExt.Text)) {
+                        fMainForm.Colorscheme[txtExt.Text] = btnColor.BackColor;
+                        UpdateColorscheme();
+                    }
+                }
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtExt.Text)) {
+                fMainForm.Colorscheme.Add(txtExt.Text, btnColor.BackColor);
+                UpdateColorscheme();
+            }
+        }
+
+        private void btnRemove_Click(object sender, EventArgs e)
+        {
+            if (lstColors.SelectedIndex >= 0 && lstColors.SelectedIndex < lstColors.Items.Count) {
+                string ext = lstColors.Items[lstColors.SelectedIndex].ToString();
+                fMainForm.Colorscheme.Remove(ext);
+                UpdateColorscheme();
+            }
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            fMainForm.ResetColorScheme();
+            UpdateColorscheme();
+        }
+
+        private void lstColors_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstColors.SelectedIndex >= 0 && lstColors.SelectedIndex < lstColors.Items.Count) {
+                string ext = lstColors.Items[lstColors.SelectedIndex].ToString();
+                var item = fMainForm.Colorscheme[ext];
+                txtExt.Text = ext;
+                btnColor.BackColor = item;
+            }
+        }
+
+        private SolidBrush BackBrushSelected = new SolidBrush(Color.FromKnownColor(KnownColor.Highlight));
+        private SolidBrush ForeBrushSelected = new SolidBrush(Color.White);
+        private SolidBrush ForeBrush = new SolidBrush(Color.Black);
+
+        private void lstColors_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            string ext = lstColors.Items[e.Index].ToString();
+            var item = fMainForm.Colorscheme[ext];
+
+            e.DrawBackground();
+            bool selected = ((e.State & DrawItemState.Selected) == DrawItemState.Selected);
+
+            int index = e.Index;
+            if (index >= 0 && index < lstColors.Items.Count) {
+                string text = lstColors.Items[index].ToString();
+                Graphics g = e.Graphics;
+
+                //background:
+                SolidBrush backgroundBrush;
+                if (selected)
+                    backgroundBrush = BackBrushSelected;
+                else backgroundBrush = new SolidBrush(item);
+                g.FillRectangle(backgroundBrush, e.Bounds);
+
+                //text:
+                SolidBrush foregroundBrush = (selected) ? ForeBrushSelected : ForeBrush;
+                g.DrawString(text, e.Font, foregroundBrush, lstColors.GetItemRectangle(index).Location);
             }
         }
     }
