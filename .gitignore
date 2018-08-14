@@ -2,6 +2,7 @@
 *.suo
 *.userprefs
 *.DotSettings.user
+*.zip
 
 /bin/
 /obj/
