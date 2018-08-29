@@ -123,10 +123,12 @@ namespace DiskTracker
             fColorScheme.Add("wmv", Color.GreenYellow);
             fColorScheme.Add("fbr", Color.GreenYellow);
             fColorScheme.Add("mov", Color.GreenYellow);
+            fColorScheme.Add("mkv", Color.GreenYellow);
 
             fColorScheme.Add("wav", Color.MediumSeaGreen);
             fColorScheme.Add("mp3", Color.MediumSeaGreen);
             fColorScheme.Add("wma", Color.MediumSeaGreen);
+            fColorScheme.Add("ape", Color.MediumSeaGreen);
 
             fColorScheme.Add("bmp", Color.PaleVioletRed);
             fColorScheme.Add("jpg", Color.PaleVioletRed);
@@ -139,8 +141,13 @@ namespace DiskTracker
 
             fColorScheme.Add("ost", Color.BlueViolet);
 
-            fColorScheme.Add("mdb", Color.DodgerBlue);
-            fColorScheme.Add("accdb", Color.DodgerBlue);
+            fColorScheme.Add("accdb", Color.MediumVioletRed);
+            fColorScheme.Add("csv", Color.MediumVioletRed);
+            fColorScheme.Add("cpy", Color.MediumVioletRed);
+            fColorScheme.Add("db", Color.MediumVioletRed);
+            fColorScheme.Add("dbf", Color.MediumVioletRed);
+            fColorScheme.Add("mdb", Color.MediumVioletRed);
+
             fColorScheme.Add("doc", Color.DodgerBlue);
             fColorScheme.Add("docx", Color.DodgerBlue);
             fColorScheme.Add("xls", Color.DodgerBlue);
@@ -179,7 +186,7 @@ namespace DiskTracker
             fColorScheme.Add("yaml", Color.Crimson);
 
             fColorScheme.Add("ttf", Color.Indigo);
-            fColorScheme.Add("ttc", Color.Indigo);
+            fColorScheme.Add("fnt", Color.Indigo);
         }
 
         private void UpdateDisksList()
