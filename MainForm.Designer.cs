@@ -42,6 +42,7 @@
             this.tsbOptions = new System.Windows.Forms.ToolStripButton();
             this.tsbAbout = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbCalc = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsProgress = new System.Windows.Forms.ToolStripProgressBar();
             this.tslblPath = new System.Windows.Forms.ToolStripStatusLabel();
@@ -72,7 +73,8 @@
             this.toolStripSeparator3,
             this.tsbOptions,
             this.tsbAbout,
-            this.toolStripSeparator2});
+            this.toolStripSeparator2,
+            this.tsbCalc});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(782, 28);
@@ -127,6 +129,15 @@
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 28);
+            // 
+            // tsbCalc
+            // 
+            this.tsbCalc.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbCalc.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbCalc.Name = "tsbCalc";
+            this.tsbCalc.Size = new System.Drawing.Size(23, 25);
+            this.tsbCalc.Text = "Calculate statistics";
+            this.tsbCalc.Click += new System.EventHandler(this.tsbCalc_Click);
             // 
             // statusStrip1
             // 
@@ -280,5 +291,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripStatusLabel tslblBasePath;
         private System.Windows.Forms.ToolStripStatusLabel tslblCurFile;
+        private System.Windows.Forms.ToolStripButton tsbCalc;
     }
 }

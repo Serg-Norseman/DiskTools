@@ -87,6 +87,7 @@ namespace DiskTracker
             tsbRefresh.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_refresh.gif");
             tsbOptions.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_tools.gif");
             tsbAbout.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_help.gif");
+            tsbCalc.Image = DTHelper.LoadResourceImage("DiskTracker.Resources.btn_calc.gif");
 
             if (fColorScheme.Count <= 0) {
                 ResetColorScheme();
@@ -251,6 +252,8 @@ namespace DiskTracker
             return true;
         }
 
+        private const string FREE_SPACE = "FreeSpace";
+
         private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
         {
             double allocatedFiles = 0.0d;
@@ -274,7 +277,7 @@ namespace DiskTracker
                     rootItem = dirItem;
 
                     if (fShowFreeSpace) {
-                        CreateItem(dirItem, "FreeSpace", freeSpace, 0.0f);
+                        CreateItem(dirItem, FREE_SPACE, freeSpace, 0.0f);
                     }
                 }
 
@@ -283,7 +286,7 @@ namespace DiskTracker
 
                     foreach (FileInfo file in files) {
                         try {
-                            if (!CheckAttributes(file.Attributes)) {
+                            if (!CheckAttributes(file.Attributes) || (file.Length == 0)) {
                                 continue;
                             }
 
@@ -540,6 +543,42 @@ namespace DiskTracker
             } catch (Exception ex) {
                 //Logger.LogWrite("DiskTracker.SaveToFile(): " + ex.Message);
             }
+        }
+
+        private void RecalcStats(List<MapItem> items)
+        {
+            foreach (var mi in items) {
+                if (FREE_SPACE.Equals(mi.Name)) continue;
+
+                if (!mi.IsLeaf()) {
+                    RecalcStats(mi.Items);
+                } else {
+                    fCount += 1;
+                    if (fMin > mi.Size) fMin = (long)mi.Size;
+                    if (fMax < mi.Size) fMax = (long)mi.Size;
+                    fSum += (long)mi.Size;
+                }
+            }
+        }
+
+        private long fMin, fMax, fAvg, fSum, fCount;
+
+        private void tsbCalc_Click(object sender, EventArgs e)
+        {
+            fMin = long.MaxValue;
+            fMax = long.MinValue;
+            fAvg = 0;
+            fSum = 0;
+            fCount = 0;
+
+            RecalcStats(fDataMap.Model.GetItems());
+
+            fAvg = fSum / fCount;
+            MessageBox.Show(
+                "Min: " + FileHelper.FileSizeToStr(fMin) + 
+                "\nMax: " + FileHelper.FileSizeToStr(fMax) + 
+                "\nAvg: " + FileHelper.FileSizeToStr(fAvg) + 
+                "\nNum: " + fCount);
         }
     }
 }

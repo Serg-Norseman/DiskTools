@@ -107,6 +107,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Resources\btn_calc.gif" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
