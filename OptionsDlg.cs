@@ -49,6 +49,8 @@ namespace DiskTracker
             chkShowFileSize.Checked = fMainForm.ShowFileSize;
             chkEnableColorscheme.Checked = fMainForm.EnableColorscheme;
             chkShowHiddenFiles.Checked = fMainForm.ShowHiddenFiles;
+            chkSkipSize.Checked = fMainForm.SkipSmaller;
+            nudSize.Value = fMainForm.SkipSmallerSize;
 
             UpdateColorscheme();
         }
@@ -60,6 +62,8 @@ namespace DiskTracker
                 fMainForm.ShowFileSize = chkShowFileSize.Checked;
                 fMainForm.EnableColorscheme = chkEnableColorscheme.Checked;
                 fMainForm.ShowHiddenFiles = chkShowHiddenFiles.Checked;
+                fMainForm.SkipSmaller = chkSkipSize.Checked;
+                fMainForm.SkipSmallerSize = (int)nudSize.Value;
 
                 DialogResult = DialogResult.OK;
             } catch (Exception) {

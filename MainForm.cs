@@ -36,6 +36,8 @@ namespace DiskTracker
         private bool fShowFreeSpace = true;
         private bool fShowFileSize = true;
         private bool fShowHiddenFiles = true;
+        private bool fSkipSmaller = true;
+        private int fSkipSmallerSize = 1048576; // 1 MB
 
         public Dictionary<string, Color> Colorscheme
         {
@@ -64,6 +66,18 @@ namespace DiskTracker
         {
             get { return fShowHiddenFiles; }
             set { fShowHiddenFiles = value; }
+        }
+
+        public bool SkipSmaller
+        {
+            get { return fSkipSmaller; }
+            set { fSkipSmaller = value; }
+        }
+
+        public int SkipSmallerSize
+        {
+            get { return fSkipSmallerSize; }
+            set { fSkipSmallerSize = value; }
         }
 
 
@@ -253,6 +267,7 @@ namespace DiskTracker
         }
 
         private const string FREE_SPACE = "FreeSpace";
+        private const string SMALL_FILES = @"\SmallFiles";
 
         private void WalkDirectoryTree(DirectoryInfo root, double allocatedSpace, double freeSpace)
         {
@@ -284,13 +299,22 @@ namespace DiskTracker
                 try {
                     FileInfo[] files = currentDir.GetFiles("*.*");
 
+                    MapItem smallFiles = null;
                     foreach (FileInfo file in files) {
                         try {
                             if (!CheckAttributes(file.Attributes) || (file.Length == 0)) {
                                 continue;
                             }
 
-                            CreateItem(dirItem, file.FullName, file.Length, 0.0f);
+                            if (fSkipSmaller && file.Length < fSkipSmallerSize) {
+                                if (smallFiles == null) {
+                                    smallFiles = CreateItem(dirItem, dirItem.Name + SMALL_FILES, file.Length, 0.0f);
+                                } else {
+                                    smallFiles.Size += file.Length;
+                                }
+                            } else {
+                                CreateItem(dirItem, file.FullName, file.Length, 0.0f);
+                            }
 
                             allocatedFiles += file.Length;
                             UpdateProgress(1, (int)(allocatedFiles / allocatedSpace * 100));
