@@ -30,6 +30,5 @@ namespace FileChecker
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }
-        
     }
 }

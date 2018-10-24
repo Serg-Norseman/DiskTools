@@ -9,5 +9,6 @@
 /ProfilingSessions/
 /ilmerge/ILMerge*.*
 /deploy/
+/temp/
 
 bsl_copy.cmd
