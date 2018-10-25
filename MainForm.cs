@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -24,34 +25,61 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using EXControls;
 
 namespace FileChecker
 {
     public partial class MainForm : Form, IUserForm
     {
-        private readonly SynchronizationContext syncContext;
+        private readonly SynchronizationContext fSyncContext;
+        private readonly int fProcessorCores;
+        private bool[] fCoreBusy;
 
         private string folderName;
+
+        private List<string> fFiles;
+        private int fLastIndex;
+        private int fCompleted;
+
+        EXListViewItem[] fListItems;
+        ProgressBar[] fProgressBars;
 
         public MainForm()
         {
             InitializeComponent();
-            syncContext = SynchronizationContext.Current;
+            fSyncContext = SynchronizationContext.Current;
 
-            DefineProcessorsCount();
-        }
+            fProcessorCores = FCCore.GetProcessorsCount();
+            fCoreBusy = new bool[fProcessorCores];
+            Array.Clear(fCoreBusy, 0, fProcessorCores);
 
-        private void DefineProcessorsCount()
-        {
-            int processors = 1;
-            string processorsStr = System.Environment.GetEnvironmentVariable("NUMBER_OF_PROCESSORS");
-            if (processorsStr != null) processors = int.Parse(processorsStr);
-            Text = "ProcessorsCount: " + processors;
+            Text = "ProcessorsCount: " + fProcessorCores;
+
+            exListView1.Columns.Add("File", 300);
+            exListView1.Columns.Add("Progress", 200);
+
+            fListItems = new EXListViewItem[fProcessorCores];
+            fProgressBars = new ProgressBar[fProcessorCores];
+            for (int i = 0; i < fProcessorCores; i++) {
+                EXListViewItem item = new EXListViewItem("Item " + i);
+                EXControlListViewSubItem cs = new EXControlListViewSubItem();
+                ProgressBar b = new ProgressBar();
+                b.Minimum = 0;
+                b.Maximum = 100;
+                b.Step = 1;
+                item.SubItems.Add(cs);
+                exListView1.AddControlToSubItem(b, cs);
+                exListView1.Items.Add(item);
+
+                fListItems[i] = item;
+                fProgressBars[i] = b;
+            }
         }
 
         private void btnProcess_Click(object sender, EventArgs e)
         {
             using (var fldDlg = new FolderBrowserDialog()) {
+                fldDlg.SelectedPath = folderName;
                 if (fldDlg.ShowDialog() == DialogResult.OK) {
                     folderName = fldDlg.SelectedPath;
                     Process();
@@ -59,102 +87,212 @@ namespace FileChecker
             }
         }
 
+        private readonly ManualResetEvent initEvent = new ManualResetEvent(false);
+        private bool fEmptyList;
+
         private void Process()
         {
-            
+            fFiles = WalkDirectoryTree(new DirectoryInfo(folderName), true);
+            fLastIndex = -1;
+            fEmptyList = false;
+            initEvent.Set();
+            ProgressBar.Value = 0;
+            ProgressBar.Maximum = fFiles.Count;
+            ProgressBar.Visible = true;
+            fCompleted = 0;
+
+            new Thread(() => {
+                while (!fEmptyList) {
+                    if (initEvent.WaitOne()) {
+                        lock (fFiles) {
+                            lock (fCoreBusy) {
+                                int freeCore = GetFreeCore();
+                                while (freeCore >= 0) {
+                                    if (fLastIndex >= fFiles.Count - 1) {
+                                        fEmptyList = true;
+                                        break;
+                                    }
+                                    fLastIndex += 1;
+                                    string fileName = fFiles[fLastIndex];
+
+                                    fCoreBusy[freeCore] = true;
+                                    CreateFileHashThread(fLastIndex, freeCore, fileName);
+
+                                    freeCore = GetFreeCore();
+                                }
+                            }
+                        }
+
+                        initEvent.Reset();
+                    }
+                }
+            }).Start();
         }
 
-        public void ReportHash(byte[] hashResult)
+        private List<string> WalkDirectoryTree(DirectoryInfo root, bool showHidden)
         {
-            syncContext.Post(UpdateHash, hashResult);
+            var result = new List<string>();
+
+            UpdateProgress(0, "Folder scanning");
+
+            var dirStack = new Stack<DirectoryInfo>();
+            dirStack.Push(root);
+
+            while (dirStack.Count > 0) {
+                DirectoryInfo currentDir = dirStack.Pop();
+
+                if (!FCCore.CheckAttributes(currentDir.Attributes, showHidden)) {
+                    continue;
+                }
+
+                try {
+                    FileInfo[] files = currentDir.GetFiles("*.*");
+                    foreach (FileInfo file in files) {
+                        try {
+                            if (!FCCore.CheckAttributes(file.Attributes, showHidden)) {
+                                continue;
+                            }
+
+                            result.Add(file.FullName);
+
+                            UpdateProgress(1, file.FullName);
+                        } catch (FileNotFoundException) {
+                        }
+                    }
+                } catch (UnauthorizedAccessException) {
+                } catch (DirectoryNotFoundException) {
+                }
+
+                try {
+                    DirectoryInfo[] subDirs = currentDir.GetDirectories();
+                    foreach (DirectoryInfo dir in subDirs) {
+                        dirStack.Push(dir);
+                    }
+                } catch (UnauthorizedAccessException) {
+                } catch (DirectoryNotFoundException) {
+                }
+            }
+
+            UpdateProgress(2, "");
+
+            return result;
+        }
+
+        private void UpdateProgress(int action, string value)
+        {
+            switch (action) {
+                case 0:
+                case 2:
+                    StatusText.Text = value;
+                    //tsProgress.Maximum = 100;
+                    //tsProgress.Value = 0;
+                    break;
+
+                case 1:
+                    StatusText.Text = value;
+                    /*if (value >= tsProgress.Minimum && value <= tsProgress.Maximum) {
+                        tsProgress.Value = value;
+                    }*/
+                    break;
+            }
+        }
+
+        private int GetFreeCore()
+        {
+            for (int i = 0; i < fCoreBusy.Length; i++) {
+                if (!fCoreBusy[i]) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        #region Thread's reporting functions
+
+        void IUserForm.ReportHash(ThreadFileObj fileObj)
+        {
+            fSyncContext.Post(UpdateHash, fileObj);
+
+            lock (fCoreBusy) {
+                int threadCore = fileObj.Core;
+                fCoreBusy[threadCore] = false;
+            }
+
+            initEvent.Set();
+
+            var core = FCCore.CORES[fileObj.Core];
+            fSyncContext.Post(UpdateLog, core.ToString() + ", FileHash (" + fileObj.FileName + "): " + FCCore.Hash2Str(fileObj.Hash));
         }
 
         private void UpdateHash(object state)
         {
-            byte[] hashResult = (byte[])state;
+            ThreadFileObj fileObj = (ThreadFileObj)state;
+            //fileObj.Hash
+            fProgressBars[fileObj.Core].Value = 0;
+            fListItems[fileObj.Core].Text = "?";
+            exListView1.Update();
 
-            StringBuilder sb;
-            sb = new StringBuilder();
-
-            ProgressPercentage.Visible = false;
-            ProgressBar.Visible = false;
-            StatusText.Text = "";
-
-            foreach (byte b in hashResult) {
-                sb.AppendFormat("{0:X2}", b);
-            }
-            HashTextbox.Text = sb.ToString();
+            fCompleted += 1;
+            ProgressBar.Value = fCompleted;
         }
 
-        public void ReportProgress(int progress)
+        void IUserForm.ReportProgress(ThreadFileObj fileObj)
         {
-            syncContext.Post(UpdateProgress, progress);
+            fSyncContext.Post(UpdateProgress, fileObj);
         }
 
         private void UpdateProgress(object state)
         {
-            int progress = (int)state;
-            ProgressBar.Value = progress;
-            ProgressPercentage.Text = progress + "%";
+            ThreadFileObj fileObj = (ThreadFileObj)state;
+            fProgressBars[fileObj.Core].Value = fileObj.Progress;
         }
 
-        private void SelectFileButton_Click(object sender, EventArgs e)
+        void IUserForm.ReportStart(ThreadFileObj fileObj)
         {
-            if (OpenFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) {
-                return;
-            }
+            fSyncContext.Post(UpdateStart, fileObj);
+        }
 
-            FileTextBox.Text = OpenFileDialog.FileName;
- 
-            ProgressPercentage.Visible = true;
-            ProgressBar.Visible = true;
-            StatusText.Text = "Computing hash...";
+        private void UpdateStart(object state)
+        {
+            ThreadFileObj fileObj = (ThreadFileObj)state;
+            fListItems[fileObj.Core].Text = fileObj.FileName;
+            exListView1.Update();
+        }
+
+        void IUserForm.ReportLog(string msg)
+        {
+            fSyncContext.Post(UpdateLog, msg);
+        }
+
+        private void UpdateLog(object state)
+        {
+            string msg = (string)state;
+            textBox2.AppendText(msg + "\r\n");
+        }
+
+        #endregion
+
+        #region Calculate file's hashes
+
+        private void CreateFileHashThread(int index, int coreNum, string fileName)
+        {
+            ProcessorCore core = FCCore.CORES[coreNum];
+            ((IUserForm)this).ReportLog(core.ToString() + ", Processing: " + fileName);
+
+            var fileObj = new ThreadFileObj(index, coreNum, fileName, this);
+            ((IUserForm)this).ReportStart(fileObj);
 
             DistributedThread thread = new DistributedThread(ParameterizedThreadProc);
-            thread.ProcessorAffinity = 2;
-            thread.ManagedThread.Name = "ThreadOnCPU2";
-            thread.Start(new ThreadFileObj(FileTextBox.Text, this));
+            thread.ProcessorAffinity = (int)core;
+            thread.Start(fileObj);
         }
 
-        public static void ParameterizedThreadProc(object obj)
+        private static void ParameterizedThreadProc(object obj)
         {
-            string fileName = ((ThreadFileObj)obj).FileName;
-            IUserForm userForm = ((ThreadFileObj)obj).UserForm;
-
-            byte[] buffer;
-            byte[] oldBuffer;
-            int bytesRead;
-            int oldBytesRead;
-            long size;
-            long totalBytesRead = 0;
-
-            using (Stream stream = File.OpenRead(fileName)) using (HashAlgorithm hashAlgorithm = MD5.Create()) {
-                size = stream.Length;
-
-                buffer = new byte[4096];
-                bytesRead = stream.Read(buffer, 0, buffer.Length);
-                totalBytesRead += bytesRead;
-
-                do {
-                    oldBytesRead = bytesRead;
-                    oldBuffer = buffer;
-
-                    buffer = new byte[4096];
-                    bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    totalBytesRead += bytesRead;
-
-                    if (bytesRead == 0) {
-                        hashAlgorithm.TransformFinalBlock(oldBuffer, 0, oldBytesRead);
-                    } else {
-                        hashAlgorithm.TransformBlock(oldBuffer, 0, oldBytesRead, oldBuffer, 0);
-                    }
-
-                    int progress = (int)((double)totalBytesRead * 100 / size);
-                    userForm.ReportProgress(progress);
-                } while (bytesRead != 0);
-
-                userForm.ReportHash(hashAlgorithm.Hash);
-            }
+            var fileObj = ((ThreadFileObj)obj);
+            FCCore.CalculateFileHash(fileObj);
         }
+
+        #endregion
     }
 }

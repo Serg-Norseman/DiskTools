@@ -10,5 +10,6 @@
 /ilmerge/ILMerge*.*
 /deploy/
 /temp/
+/externals/
 
 bsl_copy.cmd
