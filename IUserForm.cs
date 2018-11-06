@@ -20,32 +20,14 @@ using System;
 
 namespace FileChecker
 {
-    public sealed class ThreadFileObj
+    public interface IUserForm
     {
-        public readonly int Index;
-        public readonly IUserForm UserForm;
-        public int Core;
-        public int Progress;
+        void ReportLog(string msg);
 
-        public readonly string FileName;
-        public byte[] Hash;
-        public FileType FileType;
+        void ReportProgress(ThreadFileObj fileObj);
 
-        public ThreadFileObj(int index, int core, string fileName, IUserForm userForm)
-        {
-            Index = index;
-            Core = core;
-            FileName = fileName;
-            UserForm = userForm;
+        void ReportHash(ThreadFileObj fileObj);
 
-            FileType = FileType.None;
-        }
-
-        public ThreadFileObj(string fileName, byte[] hash)
-        {
-            FileName = fileName;
-            Hash = hash;
-            FileType = FileType.None;
-        }
+        void ReportStart(ThreadFileObj fileObj);
     }
 }

@@ -32,15 +32,22 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BSLib">
+      <HintPath>libs\BSLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChecksumType.cs" />
+    <Compile Include="Digest.cs" />
+    <Compile Include="FileType.cs" />
     <Compile Include="DistributedThread.cs" />
     <Compile Include="externals\EXComboBox.cs" />
     <Compile Include="externals\EXListView.cs" />
     <Compile Include="FCCore.cs" />
+    <Compile Include="IUserForm.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -68,7 +68,8 @@ namespace FileChecker
             long size;
             long totalBytesRead = 0;
 
-            using (Stream stream = File.OpenRead(fileName)) using (HashAlgorithm hashAlgorithm = MD5.Create()) {
+            using (Stream stream = File.OpenRead(fileName))
+                using (HashAlgorithm hashAlgorithm = GetHashAlgorithm(ChecksumType.MD5)) {
                 size = stream.Length;
 
                 buffer = new byte[4096];
@@ -106,6 +107,37 @@ namespace FileChecker
                 sb.AppendFormat("{0:X2}", b);
             }
             return sb.ToString();
+        }
+
+        public static byte[] Str2Hash(string hex)
+        {
+            int charsNum = hex.Length;
+            byte[] bytes = new byte[charsNum / 2];
+            for (int i = 0; i < charsNum; i += 2) bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+
+        public static HashAlgorithm GetHashAlgorithm(ChecksumType checksumType)
+        {
+            HashAlgorithm result = null;
+            switch (checksumType) {
+                case ChecksumType.MD5:
+                    result = MD5.Create();
+                    break;
+
+                case ChecksumType.SHA1:
+                    result = SHA1.Create();
+                    break;
+
+                case ChecksumType.SHA256:
+                    result = SHA256.Create();
+                    break;
+
+                case ChecksumType.SHA512:
+                    result = SHA512.Create();
+                    break;
+            }
+            return result;
         }
 
         public static bool CheckAttributes(FileAttributes attrs, bool showHidden)

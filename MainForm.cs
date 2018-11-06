@@ -19,9 +19,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using BSLib;
 using EXControls;
 
 namespace FileChecker
@@ -33,9 +33,13 @@ namespace FileChecker
 
         private int fCompleted;
         private bool[] fCoreBusy;
-        private List<ThreadFileObj> fFiles;
         private string fLastFolder;
         private int fLastIndex;
+        private bool fCheckMode;
+        private bool fShowOnlyChanges;
+
+        private readonly Digest fCurrentDigest;
+        private readonly Digest fPreviousDigest;
 
         EXListViewItem[] fListItems;
         ProgressBar[] fProgressBars;
@@ -44,6 +48,8 @@ namespace FileChecker
         {
             InitializeComponent();
             fSyncContext = SynchronizationContext.Current;
+            fCurrentDigest = new Digest();
+            fPreviousDigest = new Digest();
 
             fProcessorCores = FCCore.GetProcessorsCount();
             fCoreBusy = new bool[fProcessorCores];
@@ -56,8 +62,9 @@ namespace FileChecker
             exListView1.Columns.Add("File", 200);
             exListView1.Columns.Add("Progress", 200);
 
-            lvFiles.Columns.Add("File", 300);
-            lvFiles.Columns.Add("Hash", 200);
+            lvFiles.Columns.Add("File", 400);
+            lvFiles.Columns.Add("Hash", 300);
+            lvFiles.Columns.Add("Type", 200);
 
             fListItems = new EXListViewItem[fProcessorCores];
             fProgressBars = new ProgressBar[fProcessorCores];
@@ -77,20 +84,43 @@ namespace FileChecker
             }
         }
 
-        private void btnSelectFile_Click(object sender, EventArgs e)
+        private void SetUpdateMode(bool hasChanges)
+        {
+            btnUpdate.Enabled = hasChanges;
+        }
+
+        private void btnCreateDigest_Click(object sender, EventArgs e)
         {
             // select checksum digest's file
             using (var dlg = new SaveFileDialog()) {
                 dlg.Filter = "FileChecker hash files (*.fhx)|*.fhx";
                 if (dlg.ShowDialog() == DialogResult.OK) {
-                    txtOutputFile.Text = dlg.FileName;
+                    txtDigestFile.Text = dlg.FileName;
+                    SetUpdateMode(false);
+                    CreateDigest();
                 }
             }
         }
 
-        private void btnProcess_Click(object sender, EventArgs e)
+        private void btnTestDigest_Click(object sender, EventArgs e)
         {
-            Process();
+            fShowOnlyChanges = chkOnlyChanges.Checked;
+
+            // select checksum digest's file
+            using (var dlg = new OpenFileDialog()) {
+                dlg.Filter = "FileChecker hash files (*.fhx)|*.fhx";
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    txtDigestFile.Text = dlg.FileName;
+                    SetUpdateMode(false);
+                    TestDigest();
+                }
+            }
+        }
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            fPreviousDigest.WriteDigest(txtDigestFile.Text, true);
+            SetUpdateMode(false);
         }
 
         private void btnSelectFolder_Click(object sender, EventArgs e)
@@ -99,7 +129,10 @@ namespace FileChecker
                 fldDlg.SelectedPath = fLastFolder;
                 if (fldDlg.ShowDialog() == DialogResult.OK) {
                     fLastFolder = fldDlg.SelectedPath;
+
+                    fCurrentDigest.Folders.Add(fLastFolder);
                     lvFolders.Items.Add(fLastFolder);
+
                     lvFolders.Update();
                 }
             }
@@ -108,23 +141,91 @@ namespace FileChecker
         private void FillFilesList()
         {
             lvFiles.BeginUpdate();
-            for (int i = 0; i < fFiles.Count; i++) {
-                var item = lvFiles.Items.Add(fFiles[i].FileName);
+            for (int i = 0; i < fCurrentDigest.Files.Count; i++) {
+                var item = lvFiles.Items.Add(fCurrentDigest.Files[i].FileName);
                 item.SubItems.Add("");
             }
             lvFiles.EndUpdate();
         }
 
+        private void TestDigest()
+        {
+            fCheckMode = true;
+
+            fPreviousDigest.ReadDigest(txtDigestFile.Text);
+
+            lvFolders.Items.Clear();
+            foreach (string folder in fPreviousDigest.Folders) {
+                lvFolders.Items.Add(folder);
+            }
+            lvFolders.Update();
+
+            fCurrentDigest.Folders.Clear();
+            fCurrentDigest.Folders.AddRange(fPreviousDigest.Folders);
+
+            GenerateDigest();
+        }
+
+        private void CompareDigests()
+        {
+            fCurrentDigest.Files.Sort((x, y) => string.Compare(x.FileName, y.FileName, StringComparison.InvariantCulture));
+            fPreviousDigest.Files.Sort((x, y) => string.Compare(x.FileName, y.FileName, StringComparison.InvariantCulture));
+
+            bool hasChanges = false;
+
+            foreach (var prevFile in fPreviousDigest.Files) {
+                var currFile = fCurrentDigest.Files.Find(x => x.FileName.Equals(prevFile.FileName));
+                if (currFile == null) {
+                    prevFile.FileType = FileType.Missing;
+                    hasChanges = true;
+                } else {
+                    if (Algorithms.ArraysEqual(prevFile.Hash, currFile.Hash)) {
+                        prevFile.FileType = FileType.Identical;
+                    } else {
+                        prevFile.FileType = FileType.DifferentChecksum;
+                        prevFile.Hash = currFile.Hash;
+                        hasChanges = true;
+                    }
+                }
+            }
+
+            foreach (var newFile in fCurrentDigest.Files) {
+                var prevFile = fPreviousDigest.Files.Find(x => x.FileName.Equals(newFile.FileName));
+                if (prevFile == null) {
+                    newFile.FileType = FileType.New;
+                    fPreviousDigest.Files.Add(newFile);
+                    hasChanges = true;
+                }
+            }
+
+            lvFiles.Items.Clear();
+            foreach (var fileObj in fPreviousDigest.Files) {
+                if (!fShowOnlyChanges || fileObj.FileType != FileType.Identical) {
+                    var item = lvFiles.Items.Add(fileObj.FileName);
+                    item.SubItems.Add(FCCore.Hash2Str(fileObj.Hash));
+                    item.SubItems.Add(fileObj.FileType.ToString());
+                }
+            }
+            lvFiles.Update();
+
+            SetUpdateMode(hasChanges);
+        }
+
         private readonly ManualResetEvent initEvent = new ManualResetEvent(false);
         private bool fEmptyList;
 
-        private void Process()
+        private void CreateDigest()
         {
-            fFiles = new List<ThreadFileObj>();
+            fCheckMode = false;
+            GenerateDigest();
+        }
 
+        private void GenerateDigest()
+        {
+            fCurrentDigest.Files.Clear();
             for (int i = 0; i < lvFolders.Items.Count; i++) {
                 string folder = lvFolders.Items[i].Text;
-                WalkDirectoryTree(fFiles, new DirectoryInfo(folder), true);
+                WalkDirectoryTree(fCurrentDigest.Files, new DirectoryInfo(folder), true);
             }
 
             FillFilesList();
@@ -132,25 +233,25 @@ namespace FileChecker
             fEmptyList = false;
             initEvent.Set();
             ProgressBar.Value = 0;
-            ProgressBar.Maximum = fFiles.Count;
+            ProgressBar.Maximum = fCurrentDigest.Files.Count;
             ProgressBar.Visible = true;
             fCompleted = 0;
 
             new Thread(() => {
                 while (!fEmptyList) {
                     if (initEvent.WaitOne()) {
-                        lock (fFiles) {
+                        lock (fCurrentDigest.Files) {
                             lock (fCoreBusy) {
                                 int freeCore = GetFreeCore();
                                 while (freeCore >= 0) {
-                                    if (fLastIndex >= fFiles.Count - 1) {
+                                    if (fLastIndex >= fCurrentDigest.Files.Count - 1) {
                                         fEmptyList = true;
                                         break;
                                     }
                                     fLastIndex += 1;
 
                                     fCoreBusy[freeCore] = true;
-                                    CreateFileHashThread(fLastIndex, freeCore, fFiles[fLastIndex]);
+                                    CreateFileHashThread(fLastIndex, freeCore, fCurrentDigest.Files[fLastIndex]);
 
                                     freeCore = GetFreeCore();
                                 }
@@ -161,25 +262,6 @@ namespace FileChecker
                     }
                 }
             }).Start();
-        }
-
-        private void GenerateOutput()
-        {
-            string outFile = txtOutputFile.Text;
-            if (string.IsNullOrEmpty(outFile)) {
-                return;
-            }
-
-            using (var sw = new StreamWriter(outFile, false, Encoding.UTF8)) {
-                sw.WriteLine("; Checksums generated by FileChecker 0.1.0.0");
-                sw.WriteLine("; " + DateTime.Now.ToString());
-
-                foreach (var fileObj in fFiles) {
-                    sw.WriteLine(FCCore.Hash2Str(fileObj.Hash) + " *" + fileObj.FileName);
-                }
-
-                sw.WriteLine("; " + fFiles.Count + " files hashed.");
-            }
         }
 
         private void WalkDirectoryTree(List<ThreadFileObj> resultFiles, DirectoryInfo root, bool showHidden)
@@ -289,8 +371,14 @@ namespace FileChecker
             fCompleted += 1;
             ProgressBar.Value = fCompleted;
 
-            if (fCompleted == fFiles.Count) {
-                GenerateOutput();
+            if (fCompleted == fCurrentDigest.Files.Count) {
+                if (fCheckMode) {
+                    CompareDigests();
+                } else {
+                    fCurrentDigest.WriteDigest(txtDigestFile.Text);
+                }
+
+                ProgressBar.Value = 0;
             }
         }
 

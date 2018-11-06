@@ -16,36 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
-
 namespace FileChecker
 {
-    public sealed class ThreadFileObj
+    public enum ChecksumType
     {
-        public readonly int Index;
-        public readonly IUserForm UserForm;
-        public int Core;
-        public int Progress;
-
-        public readonly string FileName;
-        public byte[] Hash;
-        public FileType FileType;
-
-        public ThreadFileObj(int index, int core, string fileName, IUserForm userForm)
-        {
-            Index = index;
-            Core = core;
-            FileName = fileName;
-            UserForm = userForm;
-
-            FileType = FileType.None;
-        }
-
-        public ThreadFileObj(string fileName, byte[] hash)
-        {
-            FileName = fileName;
-            Hash = hash;
-            FileType = FileType.None;
-        }
+        MD5,
+        SHA1,
+        SHA256,
+        SHA512
     }
 }
