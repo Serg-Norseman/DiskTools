@@ -25,7 +25,7 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyProduct("FileChecker")]
 [assembly: AssemblyCopyright("Copyright (C) 2018 by Sergey V. Zhdanovskih")]
-[assembly: AssemblyVersion("1.0.9.0")]
+[assembly: AssemblyVersion("1.0.10.0")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
