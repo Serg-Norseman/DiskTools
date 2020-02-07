@@ -1,0 +1,14 @@
+**/.vs/
+*.suo
+*.userprefs
+*.DotSettings.user
+*.zip
+
+/bin/
+/obj/
+/ProfilingSessions/
+/ilmerge/ILMerge*.*
+/deploy/
+/externals/
+
+bsl_copy.cmd
